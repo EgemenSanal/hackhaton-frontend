@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from './screens/HomeScreen';
 import ProductsScreen from './screens/ProductsScreen';
 import AutoCameraScreen from './screens/AutoCameraScreen';
+import SummaryScreen from './screens/SummaryScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,6 +23,9 @@ export default function App() {
         </Stack.Screen>
         <Stack.Screen name="AutoCamera">
           {(props) => <AutoCameraScreen {...props} items={items} setItems={setItems} />}
+        </Stack.Screen>
+        <Stack.Screen name="Summary">
+          {(props) => <SummaryScreen {...props} items={items} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>

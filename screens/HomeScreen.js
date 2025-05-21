@@ -54,9 +54,28 @@ export default function HomeScreen({ navigation, items, setItems }) {
         }
     };
 
+    const getAISummary = async () => {
+        try {
+            const response = await fetch('http://192.168.1.48:500/llama_summary', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const data = await response.json();
+            const summary = data?.summary || 'Özet bilgisi alınamadı.';
+
+            Alert.alert('Yapay Zeka Özeti', summary);
+        } catch (error) {
+            console.error('Summary fetch error:', error);
+            Alert.alert('Hata', 'Özet bilgisi alınırken hata oluştu.');
+        }
+    };
+
     return (
         <View style={styles.container}>
-            <Button title="Kamera ile Tek Çekim" onPress={pickImageAndUpload} />
+            <View style={styles.spacer} />
             <View style={styles.spacer} />
             <Button
                 title="Ürünleri Gör"
@@ -66,6 +85,10 @@ export default function HomeScreen({ navigation, items, setItems }) {
             <Button
                 title="Otomatik Kamera"
                 onPress={() => navigation.navigate('AutoCamera')}
+            />
+            <Button
+                title="Yapay Zeka Analizi"
+                onPress={() => navigation.navigate('Summary')}
             />
         </View>
     );

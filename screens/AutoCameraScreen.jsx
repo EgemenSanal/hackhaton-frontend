@@ -22,43 +22,70 @@ export default function AutoCameraScreen({ navigation, items, setItems }) {
         }
     }, [hasPermission, isCameraReady]);
 
+    const analyzeImage = async (photoUri, itemId) => {
+        try {
+            const formData = new FormData();
+            formData.append('image', {
+                uri: photoUri,
+                type: 'image/jpeg',
+                name: 'photo.jpg',
+            });
+
+            const response = await fetch('http://192.168.1.48:500/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+            const predictedClass = data?.predicted_class || 'Bilinmiyor';
+
+            // Backend'den dönen cevapla item'ı güncelle
+            setItems((prev) =>
+                prev.map(item =>
+                    item.id === itemId
+                        ? { ...item, status: predictedClass }
+                        : item
+                )
+            );
+        } catch (err) {
+            console.error('Backend analiz hatası:', err);
+            // Hata durumunda status'u güncelle
+            setItems((prev) =>
+                prev.map(item =>
+                    item.id === itemId
+                        ? { ...item, status: 'Analiz Hatası' }
+                        : item
+                )
+            );
+        }
+    };
+
     const startCaptureLoop = async () => {
         while (cameraRef.current) {
             try {
                 const photo = await cameraRef.current.takePictureAsync({ quality: 0.5 });
 
-                const formData = new FormData();
-                formData.append('image', {
-                    uri: photo.uri,
-                    type: 'image/jpeg',
-                    name: 'photo.jpg',
-                });
-
-                const response = await fetch('http://192.168.1.48:500/analyze', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                    body: formData,
-                });
-
-                const data = await response.json();
-                const predictedClass = data?.predicted_class || 'Bilinmiyor';
-
+                // Hemen geçici bir item oluştur ve listeye ekle
+                const newItemId = uuid.v4().toString();
                 const newItem = {
-                    id: uuid.v4().toString(),
+                    id: newItemId,
                     imageUri: photo.uri,
-                    status: predictedClass,
+                    status: 'Analiz Ediliyor...', // Geçici durum
                 };
 
                 setItems((prev) => [newItem, ...prev]);
 
+                // Backend analizini asenkron olarak başlat (await kullanmadan)
+                analyzeImage(photo.uri, newItemId);
+
                 // Bir sonraki fotoğraf için kısa bekleme
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 1000));
             } catch (err) {
-                console.error('Otomatik çekim/gönderme hatası:', err);
-                // Hata durumunda da kısa bekleme
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                console.error('Fotoğraf çekim hatası:', err);
+                await new Promise(resolve => setTimeout(resolve, 1000));
             }
         }
     };
