@@ -82,10 +82,10 @@ export default function AutoCameraScreen({ navigation, items, setItems }) {
                 analyzeImage(photo.uri, newItemId);
 
                 // Bir sonraki fotoğraf için kısa bekleme
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 1));
             } catch (err) {
                 console.error('Fotoğraf çekim hatası:', err);
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 1));
             }
         }
     };
